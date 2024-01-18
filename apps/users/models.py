@@ -37,3 +37,20 @@ class UserPreferences(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s preferences"
+    
+class UserProfile(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='profile')
+    profile_picture = models.CharField(max_length=255, default='../assets/default_profile.jpg')
+    additional_images = models.JSONField(default=list, blank=True)  # Placeholder for image paths
+    biography = models.TextField(blank=True, null=True)
+    age = models.IntegerField(blank=True, null=True)
+    location = models.CharField(max_length=255, blank=True, null=True)
+    hobbies = models.TextField(blank=True, null=True)
+    education = models.CharField(max_length=255, blank=True, null=True)
+    occupation = models.CharField(max_length=255, blank=True, null=True)
+    relationship_status = models.CharField(max_length=50, blank=True, null=True)
+    height = models.CharField(max_length=50, blank=True, null=True)  # Height (e.g., "5'11")
+    looking_for = models.TextField(blank=True, null=True)  # What they are looking for in a partner
+
+    def __str__(self):
+        return f"{self.user.username}'s profile"

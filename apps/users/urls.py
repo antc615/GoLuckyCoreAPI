@@ -16,4 +16,6 @@ urlpatterns = [
     path('api/profile/deactivate', views.deactivate_account, name='deactivate_account'),
     path('api/profile/reactivate', views.reactivate_account, name='reactivate_account'),
     path('api/profile/preferences', views.user_preferences, name='user_preferences'),
+    path('api/profile/', views.user_profile, name='user_profile'),
+
 ]

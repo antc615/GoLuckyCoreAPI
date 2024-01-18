@@ -8,6 +8,8 @@ from django.contrib.auth.models import User
 from .serializers import UserSerializer
 from .models import UserPreferences
 from .serializers import UserPreferencesSerializer
+from .models import UserProfile
+from .serializers import UserProfileSerializer
 
 #AUTH
 from django.contrib.auth import get_user_model, authenticate
@@ -157,6 +159,36 @@ def user_preferences(request):
     
     elif request.method in ['PUT', 'PATCH']:
         serializer = UserPreferencesSerializer(user_preferences, data=request.data, partial=(request.method == 'PATCH'))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+## USER PROFILE ##########################
+@api_view(['GET', 'PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_profile(request):
+    user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user, defaults={
+        'profile_picture': '../assets/default_profile.jpg',
+        'additional_images': [],
+        'biography': '',
+        'age': '',
+        'location': 'Unknown',
+        'hobbies': '',
+        'education': '',
+        'occupation': 'Not specified',
+        'relationship_status': 'Not specified',
+        'height': 'Not specified',
+        'looking_for': 'Not specified',
+    })
+
+    if request.method == 'GET':
+        serializer = UserProfileSerializer(profile)
+        return Response(serializer.data)
+    
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = UserProfileSerializer(profile, data=request.data, partial=(request.method == 'PATCH'))
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
