@@ -31,3 +31,20 @@ def logout(request):
         return Response(status=status.HTTP_205_RESET_CONTENT)
     except Exception as e:
         return Response(status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def update_profile(request):
+    user = request.user
+    serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True for PATCH
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_profile(request):
+    user = request.user
+    user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
