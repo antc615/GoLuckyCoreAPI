@@ -5,7 +5,14 @@ from .serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model
+
+#EMAIL
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+from django.core.mail import send_mail
+from django.urls import reverse
 
 @api_view(['POST'])
 def register(request):
@@ -66,3 +73,41 @@ def change_password(request):
     user.password = make_password(new_password)
     user.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+def request_reset_password(request):
+    UserModel = get_user_model()  # Get the custom user model
+    email = request.data.get('email')
+    try:
+        user = UserModel.objects.get(email=email)
+        token = PasswordResetTokenGenerator().make_token(user)
+        reset_link = request.build_absolute_uri(reverse('password_reset_confirm')) + '?token=' + token
+        send_mail(
+            'Password Reset Request',
+            'Here is your password reset link: ' + reset_link,
+            'antc615@gmail.com',
+            [email],
+            fail_silently=False,
+        )
+        return Response(status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        # Do not reveal that the email does not exist for security reasons
+        return Response(status=status.HTTP_200_OK)
+    
+
+@api_view(['POST'])
+def password_reset_confirm(request):
+    UserModel = get_user_model()
+    token = request.data.get('token')
+    password = request.data.get('password')
+
+    # Token validation
+    for user in UserModel.objects.all():
+        if PasswordResetTokenGenerator().check_token(user, token):
+            # Password update
+            user.set_password(password)
+            user.save()
+            return Response({"message": "Password reset successful"}, status=status.HTTP_200_OK)
+
+    # Invalid token
+    return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
