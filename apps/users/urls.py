@@ -15,4 +15,5 @@ urlpatterns = [
     path('api/auth/password-reset-confirm', views.password_reset_confirm, name='password_reset_confirm'),
     path('api/profile/deactivate', views.deactivate_account, name='deactivate_account'),
     path('api/profile/reactivate', views.reactivate_account, name='reactivate_account'),
+    path('api/profile/preferences', views.user_preferences, name='user_preferences'),
 ]

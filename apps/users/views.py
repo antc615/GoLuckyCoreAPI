@@ -1,17 +1,22 @@
+#DRF
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+
+#MODELS
+from django.contrib.auth.models import User
 from .serializers import UserSerializer
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework.permissions import IsAuthenticated
+from .models import UserPreferences
+from .serializers import UserPreferencesSerializer
 
 #AUTH
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
 
 #EMAIL
 from django.contrib.auth.hashers import make_password
-from django.contrib.auth.models import User
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.urls import reverse
@@ -138,3 +143,21 @@ def reactivate_account(request):
         return Response({"message": "Account reactivated successfully."}, status=status.HTTP_200_OK)
 
     return Response({"error": "Invalid credentials or account already active."}, status=status.HTTP_400_BAD_REQUEST)
+
+## USER PREFERENCES ##################################################
+@api_view(['GET', 'PUT', 'PATCH'])
+@permission_classes([IsAuthenticated])
+def user_preferences(request):
+    user = request.user
+    user_preferences, created = UserPreferences.objects.get_or_create(user=user)
+
+    if request.method == 'GET':
+        serializer = UserPreferencesSerializer(user_preferences)
+        return Response(serializer.data)
+    
+    elif request.method in ['PUT', 'PATCH']:
+        serializer = UserPreferencesSerializer(user_preferences, data=request.data, partial=(request.method == 'PATCH'))
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
