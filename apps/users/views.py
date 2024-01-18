@@ -4,6 +4,8 @@ from rest_framework.decorators import api_view, permission_classes
 from .serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
+from django.contrib.auth import authenticate
+from django.contrib.auth.hashers import make_password
 
 @api_view(['POST'])
 def register(request):
@@ -47,4 +49,20 @@ def update_profile(request):
 def delete_profile(request):
     user = request.user
     user.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def change_password(request):
+    user = request.user
+    old_password = request.data.get('old_password')
+    new_password = request.data.get('new_password')
+
+    if not authenticate(username=user.username, password=old_password):
+        return Response({'old_password': ['Wrong password.']}, status=status.HTTP_400_BAD_REQUEST)
+
+    # Add additional password validation here if needed
+
+    user.password = make_password(new_password)
+    user.save()
     return Response(status=status.HTTP_204_NO_CONTENT)
