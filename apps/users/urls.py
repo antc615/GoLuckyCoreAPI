@@ -13,4 +13,6 @@ urlpatterns = [
     path('api/auth/change-password',  views.change_password, name='change_password'),
     path('api/auth/request-reset-password', views.request_reset_password, name='request_reset_password'),
     path('api/auth/password-reset-confirm', views.password_reset_confirm, name='password_reset_confirm'),
+    path('api/profile/deactivate', views.deactivate_account, name='deactivate_account'),
+    path('api/profile/reactivate', views.reactivate_account, name='reactivate_account'),
 ]

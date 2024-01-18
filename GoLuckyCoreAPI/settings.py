@@ -143,3 +143,8 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'antc615@gmail.com'
 EMAIL_HOST_PASSWORD = 'jdsj kzml zczm edww'
+
+AUTHENTICATION_BACKENDS = [
+    'apps.users.authentication.AllowInactiveUserModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]

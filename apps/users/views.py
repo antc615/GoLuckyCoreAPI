@@ -4,8 +4,10 @@ from rest_framework.decorators import api_view, permission_classes
 from .serializers import UserSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import authenticate
-from django.contrib.auth import get_user_model
+
+#AUTH
+from django.contrib.auth import get_user_model, authenticate
+from rest_framework.permissions import AllowAny
 
 #EMAIL
 from django.contrib.auth.hashers import make_password
@@ -111,3 +113,28 @@ def password_reset_confirm(request):
 
     # Invalid token
     return Response({"error": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def deactivate_account(request):
+    user = request.user
+    user.is_active = False
+    user.save()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])  # Allow requests regardless of user state
+def reactivate_account(request):
+    UserModel = get_user_model()
+    username = request.data.get('username')
+    password = request.data.get('password')
+
+    # Authenticate the user
+    user = authenticate(username=username, password=password, reactivating=True)
+    if user and not user.is_active:
+        # Reactivate the user account
+        user.is_active = True
+        user.save()
+        return Response({"message": "Account reactivated successfully."}, status=status.HTTP_200_OK)
+
+    return Response({"error": "Invalid credentials or account already active."}, status=status.HTTP_400_BAD_REQUEST)
