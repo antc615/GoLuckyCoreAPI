@@ -15,7 +15,11 @@ User = get_user_model()
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
-        self.other_user_id = self.scope['url_route']['kwargs']['other_user_id']
+        try:
+            self.other_user_id = int(self.scope['url_route']['kwargs']['other_user_id'])
+        except ValueError:
+            # Handle the error (e.g., close the WebSocket connection or send an error message)
+            await self.close(code=4001)  # Custom code indicating invalid input
         
         # Get the token from the query string
         query_string = self.scope['query_string'].decode()
@@ -43,7 +47,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             else:
                 await self.close()
         else:
-            await self.close()
+            await self.close(code=4001)  # Custom code indicating invalid input
 
 
     async def disconnect(self, close_code):
@@ -53,22 +57,28 @@ class ChatConsumer(AsyncWebsocketConsumer):
             self.channel_name
         )
 
-    # Receive message from WebSocket
-    async def receive(self, text_data):
-        text_data_json = json.loads(text_data)
-        message = text_data_json['message']
-        
-        # Write message to Cassandra
-        save_message(self.user.id, self.other_user, message)
+    async def receive(self, text_data=None, bytes_data=None):   
+        try:
+            if text_data:
+                text_data_json = json.loads(text_data)
+                message = text_data_json['message']
+            else:
+                message = "testing_else_case_"
+            
+            # Write message to Cassandra
+            save_message(self.user.id, self.other_user_id, message)
 
-        # Send message to room group
-        await self.channel_layer.group_send(
-            self.room_group_name,
-            {
-                'type': 'chat_message',
-                'message': message
-            }
-        )
+            # Send message to room group
+            await self.channel_layer.group_send(
+                self.room_group_name,
+                {
+                    'type': 'chat_message',
+                    'message': message
+                }
+            )
+        except json.JSONDecodeError:
+            # Handle the error, maybe log it or send an error message back
+            print("Received invalid JSON")
 
     # Receive message from room group
     async def chat_message(self, event):
