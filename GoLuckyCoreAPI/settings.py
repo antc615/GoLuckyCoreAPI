@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'apps.users',
     'apps.matches',
     'apps.chat',
+    'apps.notifications',
 ]
 
 ASGI_APPLICATION = 'GoLuckyCoreAPI.routing.application'
@@ -174,3 +175,6 @@ AUTHENTICATION_BACKENDS = [
     'apps.users.authentication.AllowInactiveUserModelBackend',
     'django.contrib.auth.backends.ModelBackend',
 ]
+
+# Celery Configuration Options
+CELERY_BROKER_URL = 'amqp://localhost'  # Default RabbitMQ broker URL

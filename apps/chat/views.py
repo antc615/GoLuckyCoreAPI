@@ -1,9 +1,12 @@
-from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import ChatAnalytics
 from django.contrib.auth import get_user_model
 from django.shortcuts import get_object_or_404
 from django.http import JsonResponse
+from .services.cassandra_service import get_chat_history
+import uuid
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes
 
 @api_view(['POST'])
 def update_chat_analytics(request):
@@ -42,3 +45,27 @@ def get_user_chat_analytics(request, user_id):
     }
 
     return JsonResponse(data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def chat_history_view(request, other_user_id):
+    # Get the authenticated user
+    User = get_user_model()
+    user = request.user
+
+    # Generate chat_id based on authenticated user and other_user_id
+    chat_id = uuid.uuid5(uuid.NAMESPACE_DNS, f'{user.id}_{other_user_id}')
+
+    # Fetch chat history from Cassandra
+    history = get_chat_history(chat_id)
+
+    # Convert to JSON-friendly format
+    response_data = [{
+        'message_id': str(row.message_id),
+        'sender_id': str(row.sender_id),
+        'receiver_id': str(row.receiver_id),
+        'message_content': row.message_content,
+        'timestamp': row.timestamp
+    } for row in history]
+
+    return Response({'history': response_data})
