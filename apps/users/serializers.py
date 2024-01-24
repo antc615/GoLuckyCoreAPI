@@ -2,6 +2,7 @@
 from .models import User
 from .models import UserPreferences
 from .models import UserProfile
+from .models import Image
 
 from rest_framework import serializers
 
@@ -21,9 +22,15 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('user',)
 
+class ImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Image
+        fields = ['id', 'image_url', 'uploaded_at', 'description', 'is_profile_picture']
+
 class UserProfileSerializer(serializers.ModelSerializer):
+    images = ImageSerializer(many=True, read_only=True)
+    # Include the existing fields of UserProfile as well
+
     class Meta:
         model = UserProfile
-        fields = '__all__'
-        read_only_fields = ('user',)
-        
+        fields = ['user', 'profile_picture', 'biography', 'age', 'location', 'hobbies', 'education', 'occupation', 'relationship_status', 'height', 'looking_for', 'images']

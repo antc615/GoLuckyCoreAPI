@@ -1,12 +1,6 @@
-# apps/notifications/urls.py
-
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from .views import NotificationViewSet
-
-router = DefaultRouter()
-router.register(r'notifications', NotificationViewSet)
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('', include(router.urls)),
+  path('notifications/', views.add_comment, name='add_comment'),
 ]

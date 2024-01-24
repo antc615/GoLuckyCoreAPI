@@ -41,7 +41,6 @@ class UserPreferences(models.Model):
 class UserProfile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='profile')
     profile_picture = models.CharField(max_length=255, default='../assets/default_profile.jpg')
-    additional_images = models.JSONField(default=list, blank=True)  # Placeholder for image paths
     biography = models.TextField(blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
@@ -49,8 +48,19 @@ class UserProfile(models.Model):
     education = models.CharField(max_length=255, blank=True, null=True)
     occupation = models.CharField(max_length=255, blank=True, null=True)
     relationship_status = models.CharField(max_length=50, blank=True, null=True)
-    height = models.CharField(max_length=50, blank=True, null=True)  # Height (e.g., "5'11")
-    looking_for = models.TextField(blank=True, null=True)  # What they are looking for in a partner
+    height = models.CharField(max_length=50, blank=True, null=True)
+    looking_for = models.TextField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username}'s profile"
+
+# apps/users/models.py (or wherever your UserProfile model is located)
+class Image(models.Model):
+    user_profile = models.ForeignKey(UserProfile, related_name='images', on_delete=models.CASCADE)
+    image_url = models.URLField(max_length=255)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+    description = models.CharField(max_length=255, blank=True, null=True)
+    is_profile_picture = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Image for {self.user_profile.user.username}"
