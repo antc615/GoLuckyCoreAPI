@@ -6,8 +6,8 @@ def save_message(sender_id, receiver_id, message_content):
     session = cluster.connect('golucky')
 
     query = """
-    INSERT INTO chat_messages (message_id, sender_id, receiver_id, message_content, timestamp)
-    VALUES (uuid(), %s, %s, %s, toTimeStamp(now()))
+    INSERT INTO chat_messages (chat_id, sender_id, receiver_id, message_content, timestamp)
+    VALUES (uuid(), %s, %s, %s, toUnixTimestamp(now()))
     """
     session.execute(query, (sender_id, receiver_id, message_content))
     
