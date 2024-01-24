@@ -27,7 +27,6 @@ from django.urls import reverse
 
 @api_view(['POST'])
 def register(request):
-    print("This message will be printed to the terminal.")
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -39,7 +38,6 @@ def register(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
-    print("This message will be printed to the terminal.")
     user = request.user
     serializer = UserSerializer(user)
     return Response(serializer.data)
@@ -47,7 +45,6 @@ def user_profile(request):
 @api_view(['POST'])
 def logout(request):
     try:
-        print("This message will be printed to the terminal.")
         refresh_token = request.data["refresh"]
         token = RefreshToken(refresh_token)
         token.blacklist()
@@ -58,7 +55,6 @@ def logout(request):
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
-    print("This message will be printed to the terminal.")
     user = request.user
     serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True for PATCH
     if serializer.is_valid():
@@ -201,24 +197,46 @@ def user_profile(request):
 ### IMAGES 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def upload_image(request, profile_id):
+def upload_image(request, user_id):
+    User = get_user_model()  # Get the custom user model
     try:
-        print("WTF????")
-        user_profile = UserProfile.objects.get(id=profile_id, user=request.user)
-    except UserProfile.DoesNotExist:
-        return Response({"message": "UserProfile not found."}, status=status.HTTP_404_NOT_FOUND)
+        user = User.objects.get(id=user_id)
+        if request.user != user:
+            return Response({"message": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+        profile, created = UserProfile.objects.get_or_create(user=user, defaults={
+        'profile_picture': '../assets/default_profile.jpg',
+        'biography': '',
+        'location': 'Unknown',
+        'hobbies': '',
+        'education': '',
+        'occupation': 'Not specified',
+        'relationship_status': 'Not specified',
+        'height': 'Not specified',
+        'looking_for': 'Not specified',
+    })
+    except User.DoesNotExist:
+        return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
 
     serializer = ImageSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(user_profile=user_profile)
+        # Use 'profile' variable here instead of 'user_profile'
+        serializer.save(user_profile=profile)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['DELETE'])
 @permission_classes([IsAuthenticated])
-def delete_image(request, image_id):
+def delete_image(request, user_id, image_id):
+    User = get_user_model()  # Get the custom user model
     try:
-        image = Image.objects.get(id=image_id, user_profile__user=request.user)
+        user = User.objects.get(id=user_id)
+        if request.user != user:
+            return Response({"message": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Ensure the image belongs to the user's profile
+        image = Image.objects.get(id=image_id, user_profile__user=user)
+    except User.DoesNotExist:
+        return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
     except Image.DoesNotExist:
         return Response({"message": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
 

@@ -108,18 +108,18 @@ DATABASES = {
         'HOST': 'localhost',  # Set to empty string for localhost
         'PORT': '',           # Set to empty string for default
     },
-    'cassandra': {
-        'ENGINE': 'django_cassandra_engine',
-        'NAME': 'golucky',
-        'TEST_NAME': 'test_golucky',
-        'HOST': '127.0.0.1',  # Or your Cassandra cluster address
-        'OPTIONS': {
-            'replication': {
-                'strategy_class': 'SimpleStrategy',
-                'replication_factor': 1
-            }
-        }
-    }
+    # 'cassandra': {
+    #     'ENGINE': 'django_cassandra_engine',
+    #     'NAME': 'golucky',
+    #     'TEST_NAME': 'test_golucky',
+    #     'HOST': '127.0.0.1',  # Or your Cassandra cluster address
+    #     'OPTIONS': {
+    #         'replication': {
+    #             'strategy_class': 'SimpleStrategy',
+    #             'replication_factor': 1
+    #         }
+    #     }
+    # }
 }
 
 
