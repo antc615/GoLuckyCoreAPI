@@ -22,5 +22,5 @@ urlpatterns = [
     path('', include('apps.users.urls')),
     path('matches/', include('apps.matches.urls')),
     path('chat/', include('apps.chat.urls')),
-    path('api/', include('apps.notifications.urls')),
+    path('notifications/', include('apps.notifications.urls')),
 ]

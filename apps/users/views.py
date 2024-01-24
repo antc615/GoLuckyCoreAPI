@@ -10,6 +10,8 @@ from .models import UserPreferences
 from .serializers import UserPreferencesSerializer
 from .models import UserProfile
 from .serializers import UserProfileSerializer
+from .models import Image
+from .serializers import ImageSerializer
 
 #AUTH
 from django.contrib.auth import get_user_model, authenticate
@@ -25,6 +27,7 @@ from django.urls import reverse
 
 @api_view(['POST'])
 def register(request):
+    print("This message will be printed to the terminal.")
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():
         serializer.save()
@@ -36,6 +39,7 @@ def register(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
+    print("This message will be printed to the terminal.")
     user = request.user
     serializer = UserSerializer(user)
     return Response(serializer.data)
@@ -43,6 +47,7 @@ def user_profile(request):
 @api_view(['POST'])
 def logout(request):
     try:
+        print("This message will be printed to the terminal.")
         refresh_token = request.data["refresh"]
         token = RefreshToken(refresh_token)
         token.blacklist()
@@ -53,6 +58,7 @@ def logout(request):
 @api_view(['PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
+    print("This message will be printed to the terminal.")
     user = request.user
     serializer = UserSerializer(user, data=request.data, partial=True)  # partial=True for PATCH
     if serializer.is_valid():
@@ -164,16 +170,14 @@ def user_preferences(request):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-## USER PROFILE ##########################
+########################## USER PROFILE ##########################
 @api_view(['GET', 'PUT', 'PATCH'])
 @permission_classes([IsAuthenticated])
 def user_profile(request):
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user, defaults={
         'profile_picture': '../assets/default_profile.jpg',
-        'additional_images': [],
         'biography': '',
-        'age': '',
         'location': 'Unknown',
         'hobbies': '',
         'education': '',
@@ -193,3 +197,30 @@ def user_profile(request):
             serializer.save()
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+### IMAGES 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def upload_image(request, profile_id):
+    try:
+        print("WTF????")
+        user_profile = UserProfile.objects.get(id=profile_id, user=request.user)
+    except UserProfile.DoesNotExist:
+        return Response({"message": "UserProfile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    serializer = ImageSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(user_profile=user_profile)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def delete_image(request, image_id):
+    try:
+        image = Image.objects.get(id=image_id, user_profile__user=request.user)
+    except Image.DoesNotExist:
+        return Response({"message": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
+
+    image.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
