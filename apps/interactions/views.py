@@ -7,6 +7,7 @@ from .models import Like, Comment, Favorite
 from .serializers import LikeSerializer, CommentSerializer, FavoriteSerializer
 from apps.users.models import Image
 from django.contrib.auth import get_user_model
+from .events import log_like_event
 
 User = get_user_model()
 
@@ -17,6 +18,9 @@ def create_like(request, image_id):
     image = get_object_or_404(Image, id=image_id)
     if Like.objects.filter(user=request.user, image=image).exists():
         return Response({'message': 'Like already exists'}, status=status.HTTP_409_CONFLICT)
+
+    # Log the like event for notifications
+    log_like_event(request.user, image)
 
     like = Like.objects.create(user=request.user, image=image)
     return Response(LikeSerializer(like).data, status=status.HTTP_201_CREATED)
