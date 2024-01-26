@@ -179,3 +179,7 @@ AUTHENTICATION_BACKENDS = [
 
 # Celery Configuration Options
 CELERY_BROKER_URL = 'amqp://localhost'  # Default RabbitMQ broker URL
+
+#CASSANDRA VARS
+CASSANDRA_CLUSTER_NODES = ['127.0.0.1']  # list of IPs
+CASSANDRA_KEYSPACE = 'golucky'
