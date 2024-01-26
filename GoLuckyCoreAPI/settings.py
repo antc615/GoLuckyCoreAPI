@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'apps.matches',
     'apps.chat',
     'apps.notifications',
+    'apps.interactions'
 ]
 
 ASGI_APPLICATION = 'GoLuckyCoreAPI.routing.application'
