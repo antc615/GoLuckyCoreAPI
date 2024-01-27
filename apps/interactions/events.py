@@ -7,7 +7,7 @@ def log_like_event(user, image):
     This function abstracts the logging details for a like event.
     """
     async_log_notification_event.delay(
-        recipient_id=image.user.id,  # Assuming `image.user` is the owner of the image
+        recipient_id=image.user_profile.user.id,  # Accessing the user_id through the user_profile
         sender_id=user.id,
         event_type='like',
         image_id=image.id,
