@@ -1,5 +1,5 @@
 # cassandra_util.py
-from cassandra.cluster import Cluster
+from cassandra.cluster import Cluster, DCAwareRoundRobinPolicy
 from cassandra.cluster import NoHostAvailable
 from cassandra import ConsistencyLevel
 from cassandra.policies import RetryPolicy
@@ -15,17 +15,13 @@ class CassandraConnection:
 
     @staticmethod
     def get_session():
-        """
-        Purpose: Establishes and reuses a single Cassandra session for the application.
-        Usage: Called whenever a Cassandra session is needed, ensuring only one session is active. 
-        It handles session creation and logs errors during connection attempts.
-        """
         if CassandraConnection._session is None:
             try:
-                # Create the Cluster instance with the custom retry policy
+                # cluster = Cluster(settings.CASSANDRA_CLUSTER_NODES)
                 cluster = Cluster(
                     settings.CASSANDRA_CLUSTER_NODES,
-                    retry_policy=CustomRetryPolicy()
+                    load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1'),
+                    protocol_version=5  # Replace with the version supported by your cluster
                 )
                 CassandraConnection._session = cluster.connect(settings.CASSANDRA_KEYSPACE)
                 logger.info("Cassandra session created")
