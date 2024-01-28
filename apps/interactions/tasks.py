@@ -14,7 +14,6 @@ def async_log_notification_event(recipient_id, sender_id, event_type, image_id=N
     Logs a notification event to Cassandra and creates a notification in PostgreSQL.
     """
     try:
-
         with transaction.atomic():
             # Create PostgreSQL Notification
             Notification.objects.create(

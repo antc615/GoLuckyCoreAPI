@@ -194,7 +194,7 @@ def user_profile(request):
             return Response(serializer.data)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
-### IMAGES 
+### IMAGES
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_image(request, user_id):
