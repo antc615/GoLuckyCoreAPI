@@ -7,11 +7,11 @@ class AllowInactiveUserModelBackend(ModelBackend):
         UserModel = get_user_model()
         # First, try to fetch the user by username
         try:
-            user = UserModel.objects.get(username=username)
+            user = UserModel.objects.get(email=username)
         except UserModel.DoesNotExist:
             # If the user is not found by username, try by email
             try:
-                user = UserModel.objects.get(email=username)
+                user = UserModel.objects.get(username=username)
             except (UserModel.DoesNotExist, MultipleObjectsReturned):
                 # Return None if no user or multiple users are found with this email
                 return None
