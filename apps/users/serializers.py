@@ -29,8 +29,11 @@ class ImageSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
-    # Include the existing fields of UserProfile as well
-
+    
     class Meta:
         model = UserProfile
-        fields = ['user', 'profile_picture', 'biography', 'age', 'location', 'hobbies', 'education', 'occupation', 'relationship_status', 'height', 'looking_for', 'images']
+        fields = [
+            'user', 'profile_picture', 'biography', 'age', 'location', 'hobbies',
+            'education', 'occupation', 'relationship_status', 'height', 'looking_for',
+            'images', 'phone_number'
+        ]
