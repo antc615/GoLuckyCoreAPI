@@ -17,6 +17,8 @@ urlpatterns = [
     path('api/profile/deactivate', views.deactivate_account, name='deactivate_account'),
     path('api/profile/reactivate', views.reactivate_account, name='reactivate_account'),
     path('api/profile/preferences', views.user_preferences, name='user_preferences'),
+    path('api/profiles/upload-image/', views.upload_image, name='upload-image'),
+    path('api/profile/upload-image/', views.upload_image_for_authenticated_user, name='upload-image-authenticated'),
     path('api/profiles/<int:user_id>/upload-image/', views.upload_image, name='upload-image'),
     path('api/users/<int:user_id>/images/<int:image_id>/delete/', views.delete_image, name='delete-image'),
 ]

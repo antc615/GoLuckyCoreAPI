@@ -214,6 +214,29 @@ def user_profile(request):
 ### IMAGES
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
+def upload_image_for_authenticated_user(request):
+    # No need to get user_id from URL, use request.user directly
+    user = request.user
+    profile, created = UserProfile.objects.get_or_create(user=user, defaults={
+        'profile_picture': '../assets/default_profile.jpg',
+        'biography': '',
+        'location': 'Unknown',
+        'hobbies': '',
+        'education': '',
+        'occupation': 'Not specified',
+        'relationship_status': 'Not specified',
+        'height': 'Not specified',
+        'looking_for': 'Not specified',
+    })
+
+    serializer = ImageSerializer(data=request.data)
+    if serializer.is_valid():
+        serializer.save(user_profile=profile)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def upload_image(request, user_id):
     User = get_user_model()  # Get the custom user model
     try:
