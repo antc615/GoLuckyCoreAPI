@@ -214,7 +214,7 @@ def user_profile(request):
 ### IMAGES
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def upload_image_for_authenticated_user(request):
+def upload_image_authenticated(request):
     # No need to get user_id from URL, use request.user directly
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user, defaults={
