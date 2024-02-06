@@ -25,7 +25,7 @@ class UserPreferencesSerializer(serializers.ModelSerializer):
 class ImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Image
-        fields = ['id', 'image_url', 'uploaded_at', 'description', 'is_profile_picture']
+        fields = ['id', 'image', 'uploaded_at', 'description', 'is_profile_picture']
 
 class UserProfileSerializer(serializers.ModelSerializer):
     images = ImageSerializer(many=True, read_only=True)

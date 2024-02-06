@@ -59,10 +59,7 @@ class UserProfile(models.Model):
 # apps/users/models.py (or wherever your UserProfile model is located)
 class Image(models.Model):
     user_profile = models.ForeignKey(UserProfile, related_name='images', on_delete=models.CASCADE)
-    image_url = models.URLField(max_length=255)
+    image = models.ImageField(upload_to='user_images/', null=True, blank=True)
     uploaded_at = models.DateTimeField(auto_now_add=True)
     description = models.CharField(max_length=255, blank=True, null=True)
     is_profile_picture = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Image for {self.user_profile.user.username}"

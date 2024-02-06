@@ -215,6 +215,8 @@ def user_profile(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_image_authenticated(request):
+    print(request.FILES)  # Debugging: Check if the 'file' is in the request
+
     # No need to get user_id from URL, use request.user directly
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user, defaults={
@@ -228,12 +230,27 @@ def upload_image_authenticated(request):
         'height': 'Not specified',
         'looking_for': 'Not specified',
     })
-
+    
     serializer = ImageSerializer(data=request.data)
     if serializer.is_valid():
-        serializer.save(user_profile=profile)
+        instance = serializer.save(user_profile=request.user.profile)
+        file = request.FILES.get('file')  # Ensure this key matches your frontend
+        if file:
+            instance.image = file
+            instance.save()
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    # serializer = ImageSerializer(data=request.data)
+    # if serializer.is_valid():
+    #     serializer.save(user_profile=request.user.profile)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    # serializer = ImageSerializer(data=request.data)
+    # if serializer.is_valid():
+    #     serializer.save(user_profile=profile)
+    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
+    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -183,3 +184,11 @@ CELERY_BROKER_URL = 'amqp://guest:guest@localhost//'
 #CASSANDRA VARS
 CASSANDRA_CLUSTER_NODES = ['127.0.0.1']  # list of IPs
 CASSANDRA_KEYSPACE = 'golucky'
+
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Maximum size, in bytes, of a request before it will be streamed to the file system instead of into memory.
+FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # Example: 2.5 MB
+
+# Maximum size in bytes that a request's body may be before a SuspiciousOperation (RequestDataTooBig) is raised.
+DATA_UPLOAD_MAX_MEMORY_SIZE = 5242880  # Example: 5 MB
