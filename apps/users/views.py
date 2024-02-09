@@ -241,17 +241,6 @@ def upload_image_authenticated(request):
         return Response(serializer.data, status=status.HTTP_201_CREATED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    # serializer = ImageSerializer(data=request.data)
-    # if serializer.is_valid():
-    #     serializer.save(user_profile=request.user.profile)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    # serializer = ImageSerializer(data=request.data)
-    # if serializer.is_valid():
-    #     serializer.save(user_profile=profile)
-    #     return Response(serializer.data, status=status.HTTP_201_CREATED)
-    # return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_image(request, user_id):

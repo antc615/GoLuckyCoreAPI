@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.conf import settings
 
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
@@ -115,5 +116,13 @@ def match_recommendation_view(request):
     if "error" in result:
         # If the service returned an error, respond with an appropriate message
         return Response({"message": result["error"]}, status=400)
+
+    # Convert image paths in result to absolute URLs
+    for recommendation in result:
+        images_with_absolute_urls = []
+        for image_path in recommendation['images']:
+            absolute_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+            images_with_absolute_urls.append(absolute_url)
+        recommendation['images'] = images_with_absolute_urls
 
     return Response({'recommendations': result})
