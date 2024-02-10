@@ -1,5 +1,4 @@
 # apps/matches/services/matchmaking_service.py
-
 from apps.users.models import UserPreferences, UserProfile, Image
 from ..models import CompatibilityScore, Swipe
 from django.db.models import Q
@@ -9,10 +8,12 @@ class MatchmakingService:
     @staticmethod
     def get_recommendations(user, request):
         try:
-            user_prefs = UserPreferences.objects.get(user=user)
+            user_prefs, created = UserPreferences.objects.get_or_create(user=user)
         except ObjectDoesNotExist:
             # Handle case where user preferences are not set
             return {"error": "User preferences not set."}
+        
+        print(type(user_prefs), user_prefs)
 
         potential_matches = UserProfile.objects.all()
        

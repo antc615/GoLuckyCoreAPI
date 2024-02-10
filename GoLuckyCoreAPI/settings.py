@@ -127,7 +127,7 @@ DATABASES = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Access token valid for 1 hour
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=5),  # Access token valid for 1 hour
     'REFRESH_TOKEN_LIFETIME': timedelta(hours=24),  # Example: Refresh token valid for 1 hours
 }
 
@@ -194,6 +194,7 @@ CASSANDRA_KEYSPACE = 'golucky'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
 # Maximum size, in bytes, of a request before it will be streamed to the file system instead of into memory.
 FILE_UPLOAD_MAX_MEMORY_SIZE = 2621440  # Example: 2.5 MB
 
