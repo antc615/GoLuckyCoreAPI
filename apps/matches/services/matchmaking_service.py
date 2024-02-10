@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 
 class MatchmakingService:
     @staticmethod
-    def get_recommendations(user):
+    def get_recommendations(user, request):
         try:
             user_prefs = UserPreferences.objects.get(user=user)
         except ObjectDoesNotExist:
@@ -43,9 +43,18 @@ class MatchmakingService:
             images = Image.objects.filter(user_profile=match)
             for image in images:
                 try:
-                    # Attempt to add the image URL to the images list
-                    image_url = image.image.url
-                    images_list.append(image_url)
+                    # Generate the absolute URL for the image
+                    image_url = request.build_absolute_uri(image.image.url)
+                    
+                    # Create a dictionary with the image's URL and additional metadata
+                    image_data = {
+                        'url': image_url,
+                        'is_profile_image': image.is_profile_picture,
+                        'description': image.description
+                    }
+                    
+                    # Append the dictionary to the images list
+                    images_list.append(image_data)
                 except ValueError:
                     # Skip images that cannot be accessed
                     continue
@@ -57,7 +66,8 @@ class MatchmakingService:
                     'biography': match.biography,
                     'age': match.age,
                     'location': match.location,
-                    'images': images_list
+                    'images': images_list,
+                    'isVerified': True
                 }
                 # Add the match to the match data list
                 match_data.append(match_dict)

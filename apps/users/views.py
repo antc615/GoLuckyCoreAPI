@@ -26,6 +26,37 @@ from django.core.mail import send_mail
 from django.urls import reverse
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
+def refreshToken(request):
+    refresh_token = request.data.get('refresh')
+    if refresh_token is None:
+        return Response({"error": "Refresh token is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # Attempt to create a new token using the provided refresh token
+        token = RefreshToken(refresh_token)
+        # Get the user based on the token
+        user_id = token['user_id']
+        UserModel = get_user_model()
+        user = UserModel.objects.get(id=user_id)
+
+        # Generate a new access token
+        new_access_token = str(token.access_token)
+
+        # Rotate the refresh token to a new one (for added security)
+        token.blacklist()  # Ensure blacklisting is configured if you use this
+        new_refresh_token = str(RefreshToken.for_user(user))
+
+        return Response({
+            'access': new_access_token,
+            'refresh': new_refresh_token,
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        # Handle invalid or expired refresh token
+        print(e)  # Debugging: print or log the exception message
+        return Response({"error": "Invalid or expired refresh token."}, status=status.HTTP_401_UNAUTHORIZED)
+
+@api_view(['POST'])
 def register(request):
     serializer = UserSerializer(data=request.data)
     if serializer.is_valid():

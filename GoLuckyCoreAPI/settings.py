@@ -10,7 +10,9 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.0/ref/settings/
 """
 
+
 from pathlib import Path
+from datetime import timedelta
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -122,6 +124,11 @@ DATABASES = {
     #         }
     #     }
     # }
+}
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=1),  # Access token valid for 1 hour
+    'REFRESH_TOKEN_LIFETIME': timedelta(hours=24),  # Example: Refresh token valid for 1 hours
 }
 
 

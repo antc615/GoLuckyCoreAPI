@@ -111,18 +111,18 @@ def compatibility_score_list_create(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def match_recommendation_view(request):
-    result = MatchmakingService.get_recommendations(request.user)
+    result = MatchmakingService.get_recommendations(request.user, request)
 
     if "error" in result:
         # If the service returned an error, respond with an appropriate message
         return Response({"message": result["error"]}, status=400)
 
-    # Convert image paths in result to absolute URLs
-    for recommendation in result:
-        images_with_absolute_urls = []
-        for image_path in recommendation['images']:
-            absolute_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
-            images_with_absolute_urls.append(absolute_url)
-        recommendation['images'] = images_with_absolute_urls
+    # # Convert image paths in result to absolute URLs
+    # for recommendation in result:
+    #     images_with_absolute_urls = []
+    #     for image_path in recommendation['images']:
+    #         absolute_url = request.build_absolute_uri(settings.MEDIA_URL + image_path)
+    #         images_with_absolute_urls.append(absolute_url)
+    #     recommendation['images'] = images_with_absolute_urls
 
     return Response({'recommendations': result})

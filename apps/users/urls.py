@@ -6,7 +6,7 @@ urlpatterns = [
     path('api/auth/register', views.register, name='register'),
     path('api/auth/registerLogin/', views.registerLogin, name='registerLogin'),
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    # path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/profile/', views.user_profile, name='user_profile'),
     path('api/auth/logout', views.logout, name='logout'),
     path('api/profile/update', views.update_profile, name='update_profile'),
@@ -20,4 +20,5 @@ urlpatterns = [
     path('api/profile/upload-image-authenticated', views.upload_image_authenticated, name='upload_image_authenticated'),
     path('api/profile/<int:user_id>/upload-image/', views.upload_image, name='upload-image'),
     path('api/users/<int:user_id>/images/<int:image_id>/delete/', views.delete_image, name='delete-image'),
+    path('api/token/refresh/', views.refreshToken, name='refreshToken'),
 ]
