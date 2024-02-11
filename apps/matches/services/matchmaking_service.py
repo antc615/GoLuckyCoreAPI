@@ -3,6 +3,7 @@ from apps.users.models import UserPreferences, UserProfile, Image
 from ..models import CompatibilityScore, Swipe
 from django.db.models import Q
 from django.core.exceptions import ObjectDoesNotExist
+from utils.media_util import build_absolute_image_url
 
 class MatchmakingService:
     @staticmethod
@@ -12,8 +13,6 @@ class MatchmakingService:
         except ObjectDoesNotExist:
             # Handle case where user preferences are not set
             return {"error": "User preferences not set."}
-        
-        print(type(user_prefs), user_prefs)
 
         potential_matches = UserProfile.objects.all()
        

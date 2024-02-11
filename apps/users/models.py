@@ -1,6 +1,6 @@
 # models.py
 from django.contrib.auth.models import AbstractUser
-from django.db import models  # Add this import
+from django.db import models
 from django.contrib.auth import get_user_model
 
 class User(AbstractUser):
@@ -19,7 +19,7 @@ class UserPreferences(models.Model):
     # Privacy Settings
     profile_visibility = models.BooleanField(default=True)
     location_sharing = models.BooleanField(default=True)
-    block_list = models.TextField(default="", blank=True)  # Usernames or IDs of blocked users
+    block_list = models.TextField(default="", blank=True)
 
     # Notification Settings
     new_match_notifications = models.BooleanField(default=True)
