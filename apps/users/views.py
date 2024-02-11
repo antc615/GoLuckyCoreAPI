@@ -83,12 +83,12 @@ def registerLogin(request):
             return Response({"detail": "Authentication failed after registration."}, status=status.HTTP_401_UNAUTHORIZED)
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def user_profile(request):
-    user = request.user
-    serializer = UserSerializer(user)
-    return Response(serializer.data)
+# @api_view(['GET'])
+# @permission_classes([IsAuthenticated])
+# def user_profile(request):
+#     user = request.user
+#     serializer = UserSerializer(user)
+#     return Response(serializer.data)
 
 @api_view(['POST'])
 def logout(request):

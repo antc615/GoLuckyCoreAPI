@@ -4,7 +4,7 @@ from django.db import models
 from django.contrib.auth import get_user_model
 
 class User(AbstractUser):
-    is_active = models.BooleanField(default=True)  # Add this line if not already present
+    is_active = models.BooleanField(default=True)
 
 class UserPreferences(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)

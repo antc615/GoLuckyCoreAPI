@@ -44,6 +44,7 @@ class MatchmakingService:
             for image in images:
                 try:
                     # Generate the absolute URL for the image
+                    image_url = build_absolute_image_url(image.image.url);
                     image_url = request.build_absolute_uri(image.image.url)
                     
                     # Create a dictionary with the image's URL and additional metadata
