@@ -12,6 +12,7 @@ from .models import UserProfile
 from .serializers import UserProfileSerializer
 from .models import Image
 from .serializers import ImageSerializer
+from django.db.models import Q
 
 #AUTH
 from django.contrib.auth import get_user_model, authenticate
@@ -24,6 +25,9 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
 from django.core.mail import send_mail
 from django.urls import reverse
+
+#MEDIA
+from utils.media_util import build_absolute_image_url
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -232,8 +236,25 @@ def user_profile(request):
     })
 
     if request.method == 'GET':
-        serializer = UserProfileSerializer(profile)
-        return Response(serializer.data)
+        profile_data = UserProfileSerializer(profile).data
+        # Manually add absolute URL for profile picture
+        profile_data['profile_picture'] = build_absolute_image_url(request, profile.profile_picture)
+        
+        # Inside your GET request handling in user_profile view
+        images_queryset = profile.images.exclude(Q(image='') | Q(image=None))
+        images_data = []
+        for image in images_queryset:
+            image_url = build_absolute_image_url(request, image.image)
+            if image_url:  # This check ensures only images with a valid URL are processed
+                images_data.append({
+                    'id': image.id,
+                    'url': image_url,
+                    'uploaded_at': image.uploaded_at,
+                    'description': image.description,
+                    'is_profile_picture': image.is_profile_picture,
+                })
+        profile_data['images'] = images_data
+        return Response(profile_data)
     
     elif request.method in ['PUT', 'PATCH']:
         serializer = UserProfileSerializer(profile, data=request.data, partial=(request.method == 'PATCH'))
