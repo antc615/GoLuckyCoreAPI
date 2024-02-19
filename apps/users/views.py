@@ -241,7 +241,7 @@ def user_profile(request):
         profile_data['profile_picture'] = build_absolute_image_url(request, profile.profile_picture)
         
         # Inside your GET request handling in user_profile view
-        images_queryset = profile.images.exclude(Q(image='') | Q(image=None))
+        images_queryset = profile.images.exclude(Q(image='') | Q(image=None)).filter(active=True)
         images_data = []
         for image in images_queryset:
             image_url = build_absolute_image_url(request, image.image)
@@ -267,8 +267,6 @@ def user_profile(request):
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def upload_image_authenticated(request):
-    print(request.FILES)  # Debugging: Check if the 'file' is in the request
-
     # No need to get user_id from URL, use request.user directly
     user = request.user
     profile, created = UserProfile.objects.get_or_create(user=user, defaults={
@@ -343,21 +341,13 @@ def delete_image(request, user_id, image_id):
 
 @api_view(['PATCH'])
 @permission_classes([IsAuthenticated])
-def mark_image_inactive(request, user_id, image_id):
-    User = get_user_model()  # Get the custom user model
+def mark_image_inactive(request, image_id):
+    user = request.user
     try:
-        user = User.objects.get(id=user_id)
-        if request.user != user:
-            return Response({"message": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
-
-        # Ensure the image belongs to the user's profile
-        image = Image.objects.get(id=image_id, user_profile__user=user)
-        # Mark the image as inactive instead of deleting
+        # Ensure the image belongs to the authenticated user
+        image = Image.objects.get(id=image_id, user_profile__user=user, active=True)
         image.active = False
         image.save()
         return Response({"message": "Image marked as inactive successfully."}, status=status.HTTP_200_OK)
-
-    except User.DoesNotExist:
-        return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
     except Image.DoesNotExist:
-        return Response({"message": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "Image not found or access denied."}, status=status.HTTP_404_NOT_FOUND)
