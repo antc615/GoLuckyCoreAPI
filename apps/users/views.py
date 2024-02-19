@@ -340,3 +340,24 @@ def delete_image(request, user_id, image_id):
 
     image.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+@api_view(['PATCH'])
+@permission_classes([IsAuthenticated])
+def mark_image_inactive(request, user_id, image_id):
+    User = get_user_model()  # Get the custom user model
+    try:
+        user = User.objects.get(id=user_id)
+        if request.user != user:
+            return Response({"message": "Unauthorized access."}, status=status.HTTP_403_FORBIDDEN)
+
+        # Ensure the image belongs to the user's profile
+        image = Image.objects.get(id=image_id, user_profile__user=user)
+        # Mark the image as inactive instead of deleting
+        image.active = False
+        image.save()
+        return Response({"message": "Image marked as inactive successfully."}, status=status.HTTP_200_OK)
+
+    except User.DoesNotExist:
+        return Response({"message": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Image.DoesNotExist:
+        return Response({"message": "Image not found."}, status=status.HTTP_404_NOT_FOUND)
