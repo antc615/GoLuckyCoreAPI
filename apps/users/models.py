@@ -40,17 +40,21 @@ class UserPreferences(models.Model):
     
 class UserProfile(models.Model):
     user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE, related_name='profile')
+    first_name = models.CharField(max_length=255, blank=True, null=True)  # New field
+    last_name = models.CharField(max_length=255, blank=True, null=True)  # New field
+    interests = models.TextField(blank=True, null=True)  # New field to capture user interests
+    goals = models.TextField(blank=True, null=True)  # New field to capture user goals
+    zodiac_sign = models.CharField(max_length=50, blank=True, null=True)  # New field for Zodiac sign
     profile_picture = models.CharField(max_length=255, default='../assets/default_profile.jpg')
     biography = models.TextField(blank=True, null=True)
     age = models.IntegerField(blank=True, null=True)
     location = models.CharField(max_length=255, blank=True, null=True)
-    hobbies = models.TextField(blank=True, null=True)
+    hobbies = models.TextField(blank=True, null=True)  # Consider integrating with 'interests' if relevant
     education = models.CharField(max_length=255, blank=True, null=True)
     occupation = models.CharField(max_length=255, blank=True, null=True)
     relationship_status = models.CharField(max_length=50, blank=True, null=True)
     height = models.CharField(max_length=50, blank=True, null=True)
-    looking_for = models.TextField(blank=True, null=True)    
-    # Add the phone number field
+    looking_for = models.TextField(blank=True, null=True)
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
 
     def __str__(self):
