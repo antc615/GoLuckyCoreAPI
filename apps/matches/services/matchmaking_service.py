@@ -74,13 +74,19 @@ class MatchmakingService:
         ]
         update_fields = []
         for field in fields_to_check:
-            # Use getattr to safely get the attribute value, and check if it's None or empty
-            if not getattr(profile, field, None):
+            # Retrieve the current value of the field
+            current_value = getattr(profile, field, None)
+            
+            # Check if the value is None or "Not specified"
+            if current_value is None or current_value == "Not specified":
+                # Generate and set random data for the field
                 random_data = MatchmakingService.get_random_data(field)
                 setattr(profile, field, random_data)  # Correct use of setattr to update the model instance
                 update_fields.append(field)
+
+        # Save the profile with updated fields, if any
         if update_fields:
-            profile.save(update_fields=update_fields)  # Efficiently update only the fields that were changed
+            profile.save(update_fields=update_fields)
 
     @staticmethod
     def get_recommendations(user, request):
