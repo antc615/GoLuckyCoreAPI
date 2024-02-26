@@ -22,4 +22,6 @@ urlpatterns = [
     path('api/users/<int:user_id>/images/<int:image_id>/delete/', views.delete_image, name='delete-image'),
     path('api/token/refresh/', views.refreshToken, name='refreshToken'),
     path('api/images/<int:image_id>/mark-inactive/', views.mark_image_inactive, name='mark-image-inactive'),
+    path('update_images/', views.update_user_images_randomly, name='update_images'),
+
 ]

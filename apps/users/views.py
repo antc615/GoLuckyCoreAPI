@@ -2,6 +2,8 @@
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
+from django.shortcuts import get_list_or_404
+import random
 
 #MODELS
 from django.contrib.auth.models import User
@@ -28,6 +30,57 @@ from django.urls import reverse
 
 #MEDIA
 from utils.media_util import build_absolute_image_url
+
+# List of available images
+IMAGE_URLS = [
+    "mockimage34.jpeg",
+    "mock-image1.png",
+    "mock-image2.png",
+    "mock-image3.png",
+    "mock-image4.png",
+    "mock-image5.png",
+    "mock-image6.png",
+    "mock-image7.png",
+    "mock-image8.png",
+    "mock-image9.png",
+    "mockimage10.jpeg",
+    "mockimage11.jpeg",
+    "mockimage12.jpeg",
+    "mockimage13.jpeg",
+    "mockimage14.jpeg",
+    "mockimage15.jpeg",
+    "mockimage16.jpeg",
+    "mockimage18.jpeg",
+    "mockimage20.jpeg",
+    "mockimage22.jpeg",
+    "mockimage25.jpeg",
+    "mockimage26.jpeg",
+    "mockimage28.jpeg",
+    "mockimage29.jpeg",
+    "mockimage30.jpeg",
+    "mockimage31.jpeg",
+    "mockimage32.jpeg",
+    "mockimage33.jpeg",
+    "mockimage35.jpeg",
+    "mockimage36.jpeg",
+    "mockimage37.jpeg",
+    "mockimage39.jpeg",
+    "mockimage40.jpeg"
+]
+
+@api_view(['POST'])
+def update_user_images_randomly(request):
+    # Fetch all Image records
+    images = get_list_or_404(Image)
+    
+    # Update each image with a random URL from the list
+    for image in images:
+        random_image_url = random.choice(IMAGE_URLS)
+        image_url_with_prefix = f"user_images/{random_image_url}"
+        image.image = image_url_with_prefix  # Assuming 'image' is the field name for the image URL
+        image.save()
+    
+    return Response({"message": "All user images updated with random URLs successfully."})
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
