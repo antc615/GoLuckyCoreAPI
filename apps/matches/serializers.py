@@ -6,7 +6,6 @@ from .models import MatchFeedback
 from .models import CompatibilityScore
 from .models import MatchRecommendation
 
-
 class MatchSerializer(serializers.ModelSerializer):
     class Meta:
         model = Match
@@ -29,7 +28,6 @@ class FavoritesSerializer(serializers.ModelSerializer):
             'timestamp': {'read_only': True}
         }
 
-
 class MatchFeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = MatchFeedback
@@ -37,7 +35,7 @@ class MatchFeedbackSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'user': {'read_only': True},
         }
-        
+
 class CompatibilityScoreSerializer(serializers.ModelSerializer):
     class Meta:
         model = CompatibilityScore
