@@ -147,6 +147,7 @@ class MatchmakingService:
             # Only include the match if there are images
             if images_list:
                 match_dict = {
+                    'id': match.user.id,
                     'firstName': match.first_name,
                     'lastName': match.last_name,
                     'interests': match.interests,
