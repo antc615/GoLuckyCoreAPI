@@ -8,7 +8,7 @@ from rest_framework.exceptions import Throttled
 from django.core.cache import cache
 from django.db import transaction
 from django.db.models import Q
-# from django_ratelimit.decorators import ratelimit
+from .tasks import async_check_for_match
 
 #Models
 from .models import Match
@@ -33,9 +33,9 @@ from .services.matchmaking_service import MatchmakingService
 @permission_classes([IsAuthenticated])
 def match_list(request):
     if request.method == 'GET':
-        # Filter matches relevant to the authenticated user
         user_matches = Match.objects.filter(user1=request.user) | Match.objects.filter(user2=request.user)
-        serializer = MatchSerializer(user_matches, many=True)
+        # Pass the request in the context
+        serializer = MatchSerializer(user_matches, many=True, context={'request': request})
         return Response(serializer.data)
 
     elif request.method == 'POST':
@@ -58,8 +58,8 @@ def swipe_list_create(request):
 
     elif request.method == 'POST':
         # Rate Limiting (additional check if needed)
-        if request.limited:
-            raise Throttled(detail='Too many swipe attempts. Try again later.')
+        # if request.limited:
+        #     raise Throttled(detail='Too many swipe attempts. Try again later.')
 
         swiped_user_id = request.data.get('swiped')
         direction = request.data.get('direction')
@@ -73,7 +73,7 @@ def swipe_list_create(request):
             # The rest of the validation and processing as before...
             if direction == "like":
                 # Background task for match checking
-                check_for_match.delay(request.user.id, swiped_user_id)
+                async_check_for_match.delay(request.user.id, swiped_user_id)
             
             # Set a short cache duration for this swipe to prevent rapid repeat swipes
             cache.set(cache_key, 'swiped', timeout=30)

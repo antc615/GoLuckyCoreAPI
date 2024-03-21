@@ -2,7 +2,7 @@
 
 from celery import shared_task
 from utils.cassandra_util import log_notification_event
-from apps.notifications.models import Notification  # Import the Notification model
+from apps.notifications.models import Notification
 import logging
 from django.db import transaction
 
@@ -15,7 +15,6 @@ def async_log_notification_event(recipient_id, sender_id, event_type, image_id=N
     """
     try:
         with transaction.atomic():
-            # Create PostgreSQL Notification
             Notification.objects.create(
                 recipient_id=recipient_id,
                 sender_id=sender_id,

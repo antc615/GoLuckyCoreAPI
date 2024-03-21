@@ -170,3 +170,11 @@ class MatchmakingService:
 
         return match_data
     
+# Assuming this is placed in a utilities module or directly within your serializer file
+def get_random_user_image_url(user):
+    images = Image.objects.filter(user_profile=user.profile)  # Adjust based on your actual relationship
+    if images.exists():
+        # Select a random image if multiple images are present
+        random_image = random.choice(images)
+        return random_image.image.url  # Assuming 'image' is the ImageField
+    return None
