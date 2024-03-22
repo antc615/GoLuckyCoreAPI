@@ -16,27 +16,35 @@ from .services.matchmaking_service import get_random_user_image_url
 User = get_user_model()
 
 class MatchSerializer(serializers.ModelSerializer):
-    user1_details = serializers.SerializerMethodField()
-    user2_details = serializers.SerializerMethodField()
+    match_details = serializers.SerializerMethodField()
 
     class Meta:
         model = Match
-        fields = '__all__'
+        fields = ['id', 'match_details', 'matched_on', 'is_active']
 
-    def get_user1_details(self, obj):
-        # This method is now just a placeholder, actual implementation happens in to_representation
-        pass
-
-    def get_user2_details(self, obj):
-        # This method is now just a placeholder, actual implementation happens in to_representation
-        pass
+    def get_match_details(self, obj):
+        request = self.context.get('request')
+        # Determine which user is the match (not the requester) and serialize their details
+        if obj.user1 == request.user:
+            match_user = obj.user2
+        else:
+            match_user = obj.user1
+        return UserWithImageSerializer(match_user, context={'request': request}).data
 
     def to_representation(self, instance):
-        ret = super().to_representation(instance)
+        representation = super().to_representation(instance)
+        # Modify to_representation to use 'match_details' instead of 'user1_details' and 'user2_details'
         request = self.context.get('request')
-        ret['user1_details'] = UserWithImageSerializer(instance.user1, context={'request': request}).data
-        ret['user2_details'] = UserWithImageSerializer(instance.user2, context={'request': request}).data
-        return ret
+        if instance.user1 == request.user:
+            match_user_details = UserWithImageSerializer(instance.user2, context={'request': request}).data
+        else:
+            match_user_details = UserWithImageSerializer(instance.user1, context={'request': request}).data
+        # Remove user1_details and user2_details from the representation
+        representation.pop('user1_details', None)
+        representation.pop('user2_details', None)
+        # Add match_user_details under a suitable key, for example 'match_details'
+        representation['match_details'] = match_user_details
+        return representation
     
 class UserWithImageSerializer(serializers.ModelSerializer):
     images = serializers.SerializerMethodField()
@@ -57,9 +65,7 @@ class SwipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Swipe
         fields = '__all__'
-        extra_kwargs = {
-            'swiper': {'read_only': True}
-        }
+        read_only_fields = ['swiper']  # Ensure swiper is not writable directly
 
 class FavoritesSerializer(serializers.ModelSerializer):
     class Meta:
