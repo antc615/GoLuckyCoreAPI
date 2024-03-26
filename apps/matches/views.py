@@ -25,6 +25,8 @@ from .models import MatchRecommendation
 from .serializers import MatchRecommendationSerializer
 from .models import CompatibilityScore
 from .serializers import CompatibilityScoreSerializer
+from django.db.models import Count
+from apps.users.models import Image, UserProfile
 
 #Services
 from .services.matchmaking_service import MatchmakingService
@@ -33,9 +35,29 @@ from .services.matchmaking_service import MatchmakingService
 @permission_classes([IsAuthenticated])
 def match_list(request):
     if request.method == 'GET':
-        user_matches = Match.objects.filter(user1=request.user) | Match.objects.filter(user2=request.user)
-        # Pass the request in the context
-        serializer = MatchSerializer(user_matches, many=True, context={'request': request})
+        user_matches = Match.objects.filter(Q(user1=request.user) | Q(user2=request.user))
+
+        # Initialize an empty list to hold matches where both users have at least one image
+        filtered_matches = []
+
+        for match in user_matches:
+            # Check for the existence of UserProfiles for both users
+            user1_profile_exists = UserProfile.objects.filter(user=match.user1).exists()
+            user2_profile_exists = UserProfile.objects.filter(user=match.user2).exists()
+
+            if user1_profile_exists and user2_profile_exists:
+                user1_profile = UserProfile.objects.get(user=match.user1)
+                user2_profile = UserProfile.objects.get(user=match.user2)
+
+                user1_images_exists = user1_profile.images.exclude(Q(image='') | Q(image=None)).filter(active=True).exists()
+                user2_images_exists = user2_profile.images.exclude(Q(image='') | Q(image=None)).filter(active=True).exists()
+
+                # Only include the match if both users have at least one active image
+                if user1_images_exists and user2_images_exists:
+                    filtered_matches.append(match)
+        
+        # Serialize and return the filtered matches
+        serializer = MatchSerializer(filtered_matches, many=True, context={'request': request})
         return Response(serializer.data)
 
     elif request.method == 'POST':

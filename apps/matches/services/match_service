@@ -1,0 +1,22 @@
+# apps/matches/services.py
+from django.db.models import Q
+from apps.users.models import Match, UserProfile
+
+class MatchService:
+    @staticmethod
+    def get_filtered_matches(user):
+        """
+        Retrieves matches for the given user, excluding matches where either user
+        does not have at least one image associated with their UserProfile.
+        """
+        matches = Match.objects.filter(Q(user1=user) | Q(user2=user), is_active=True)
+        filtered_matches = []
+
+        for match in matches:
+            user1_has_images = UserProfile.objects.get(user=match.user1).images.exists()
+            user2_has_images = UserProfile.objects.get(user=match.user2).images.exists()
+
+            if user1_has_images and user2_has_images:
+                filtered_matches.append(match)
+
+        return filtered_matches
