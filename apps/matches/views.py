@@ -32,6 +32,9 @@ from apps.users.models import Image, UserProfile
 from .services.matchmaking_service import MatchmakingService
 from .services.match_service import MatchFilteringService
 
+#Database
+from django.db import IntegrityError
+
 @api_view(['GET', 'POST'])
 @permission_classes([IsAuthenticated])
 def match_list(request):
@@ -48,6 +51,74 @@ def match_list(request):
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=201)
+        else:
+            return Response(serializer.errors, status=400)
+        
+@api_view(['GET', 'POST'])
+@permission_classes([IsAuthenticated])
+def swipe_list_create(request):
+    if request.method == 'GET':
+        swipes = Swipe.objects.filter(swiper=request.user)
+        serializer = SwipeSerializer(swipes, many=True)
+        return Response(serializer.data)
+
+    elif request.method == 'POST':
+        data = request.data.copy()
+        data['swiper'] = request.user.id
+
+        # Preliminary check for existing like in the same direction
+        existing_like = Swipe.objects.filter(swiper_id=request.user.id, swiped_id=data.get('swiped'), direction="like").first()
+
+        if existing_like:
+            # Optionally, for testing, acknowledge the like without creating a duplicate
+            return Response({"message": "Like already exists, not duplicated for testing purposes."}, status=200)
+
+        serializer = SwipeSerializer(data=data)
+        # Cache check for recent swipes to prevent rapid repeat
+        cache_key = f"{request.user.id}-{data.get('swiped')}"
+        if cache.get(cache_key):
+            return Response({"error": "Please wait before swiping this user again."}, status=429)
+
+        if serializer.is_valid():
+            try:
+                with transaction.atomic():
+                    # For testing: Delete previous like if exists
+                    Swipe.objects.filter(
+                        swiper_id=request.user.id,
+                        swiped_id=data.get('swiped'),
+                        direction="like"
+                    ).delete()
+
+                    serializer.save(swiper=request.user)
+
+                    # Check for a match if the direction is "like"
+                    match_result = False
+                    if data.get('direction') == "like":
+                        swiped_user_id = data.get('swiped')
+                        Swipe.objects.create(swiper_id=swiped_user_id, swiped_id=request.user.id, direction="like")
+
+                        # Background task for match checking (assuming this is correctly set up elsewhere)
+                        async_check_for_match.delay(request.user.id, data.get('swiped'))
+
+                        # Check for and persist match
+                        match_result = check_for_match(request.user.id, data.get('swiped'))
+
+                    # Set a short cache duration for this swipe
+                    cache.set(cache_key, 'swiped', timeout=30)
+
+                    response_data = serializer.data
+                    response_data['match_created'] = match_result
+
+                    # For testing: Optionally delete the like after creation for repeated testing
+                    Swipe.objects.filter(
+                        swiper_id=request.user.id,
+                        swiped_id=data.get('swiped'),
+                        direction="like"
+                    ).delete()
+
+                    return Response(response_data, status=201)
+            except IntegrityError as e:
+                return Response({"error": str(e)}, status=400)
         else:
             return Response(serializer.errors, status=400)
 
@@ -89,56 +160,56 @@ def match_list(request):
 #             return Response(serializer.data, status=201)
 #         return Response(serializer.errors, status=400)
 
-@api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated])
-# @ratelimit(key='user', rate='100/hour', method='POST', block=True)
-def swipe_list_create(request):
-    if request.method == 'GET':
-        swipes = Swipe.objects.filter(swiper=request.user)
-        serializer = SwipeSerializer(swipes, many=True)
-        return Response(serializer.data)
+# @api_view(['GET', 'POST'])
+# @permission_classes([IsAuthenticated])
+# # @ratelimit(key='user', rate='100/hour', method='POST', block=True)
+# def swipe_list_create(request):
+#     if request.method == 'GET':
+#         swipes = Swipe.objects.filter(swiper=request.user)
+#         serializer = SwipeSerializer(swipes, many=True)
+#         return Response(serializer.data)
 
-    elif request.method == 'POST':
-        # Rate Limiting (additional check if needed)
-        # if request.limited:
-        #     raise Throttled(detail='Too many swipe attempts. Try again later.')
+#     elif request.method == 'POST':
+#         # Rate Limiting (additional check if needed)
+#         # if request.limited:
+#         #     raise Throttled(detail='Too many swipe attempts. Try again later.')
 
-        # Include the current user's ID in the data to be serialized
-        data = request.data.copy()  # Make a mutable copy of the request data
-        data['swiper'] = request.user.id  # Set the swiper to the current user
+#         # Include the current user's ID in the data to be serialized
+#         data = request.data.copy()  # Make a mutable copy of the request data
+#         data['swiper'] = request.user.id  # Set the swiper to the current user
 
-        serializer = SwipeSerializer(data=data)  # Initialize the serializer with the modified data
+#         serializer = SwipeSerializer(data=data)  # Initialize the serializer with the modified data
 
-        # Cache check for recent swipes to prevent database hit
-        cache_key = f"{request.user.id}-{data.get('swiped')}"
-        if cache.get(cache_key):
-            return Response({"error": "Please wait before swiping this user again."}, status=429)
+#         # Cache check for recent swipes to prevent database hit
+#         cache_key = f"{request.user.id}-{data.get('swiped')}"
+#         if cache.get(cache_key):
+#             return Response({"error": "Please wait before swiping this user again."}, status=429)
 
-        if serializer.is_valid():
-            with transaction.atomic():
-                 # Directly pass the swiper to the save method
-                serializer.save(swiper=request.user)
+#         if serializer.is_valid():
+#             with transaction.atomic():
+#                  # Directly pass the swiper to the save method
+#                 serializer.save(swiper=request.user)
 
-                # Check for a match if the direction is "like"
-                if data.get('direction') == "like":
-                    swiped_user_id = data.get('swiped')
-                    if not Swipe.objects.filter(swiper_id=swiped_user_id, swiped_id=request.user.id).exists():
-                        Swipe.objects.create(swiper_id=swiped_user_id, swiped_id=request.user.id, direction="like")
+#                 # Check for a match if the direction is "like"
+#                 if data.get('direction') == "like":
+#                     swiped_user_id = data.get('swiped')
+#                     if not Swipe.objects.filter(swiper_id=swiped_user_id, swiped_id=request.user.id).exists():
+#                         Swipe.objects.create(swiper_id=swiped_user_id, swiped_id=request.user.id, direction="like")
                     
-                    # Background task for match checking
-                    async_check_for_match.delay(request.user.id, data.get('swiped'))
+#                     # Background task for match checking
+#                     async_check_for_match.delay(request.user.id, data.get('swiped'))
                     
-                    # Persist match if exist
-                    match_result = check_for_match(request.user.id, data.get('swiped'))
+#                     # Persist match if exist
+#                     match_result = check_for_match(request.user.id, data.get('swiped'))
 
-                # Set a short cache duration for this swipe to prevent rapid repeat swipes
-                cache.set(cache_key, 'swiped', timeout=30)
+#                 # Set a short cache duration for this swipe to prevent rapid repeat swipes
+#                 cache.set(cache_key, 'swiped', timeout=30)
 
-                response_data = serializer.data
-                response_data['match_created'] = match_result
-            return Response(serializer.data, status=201)
-        else:
-            return Response(serializer.errors, status=400)
+#                 response_data = serializer.data
+#                 response_data['match_created'] = match_result
+#             return Response(serializer.data, status=201)
+#         else:
+#             return Response(serializer.errors, status=400)
         
 def check_for_match(swiper_id, swiped_user_id):
     match_created = False  # Initialize the flag to False
