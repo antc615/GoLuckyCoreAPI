@@ -67,7 +67,8 @@ def swipe_list_create(request):
         data['swiper'] = request.user.id
 
         # Preliminary check for existing like in the same direction
-        existing_like = Swipe.objects.filter(swiper_id=request.user.id, swiped_id=data.get('swiped'), direction="like").first()
+        swiped_id = int(data.get('swiped'))
+        existing_like = Swipe.objects.filter(swiper_id=request.user.id, swiped_id=swiped_id, direction="like").first()
 
         if existing_like:
             # Optionally, for testing, acknowledge the like without creating a duplicate

@@ -81,7 +81,7 @@ class MatchmakingService:
             if current_value is None or current_value == "Not specified":
                 # Generate and set random data for the field
                 random_data = MatchmakingService.get_random_data(field)
-                setattr(profile, field, random_data)  # Correct use of setattr to update the model instance
+                setattr(profile, field, random_data)
                 update_fields.append(field)
 
         # Save the profile with updated fields, if any
