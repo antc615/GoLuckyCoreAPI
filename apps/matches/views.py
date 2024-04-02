@@ -129,25 +129,32 @@ def swipe_list_create(request):
                     async_check_for_match.delay(request.user.id, data.get('swiped'))
                     
                     # Persist match if exist
-                    check_for_match(request.user.id, data.get('swiped'))
+                    match_result = check_for_match(request.user.id, data.get('swiped'))
 
                 # Set a short cache duration for this swipe to prevent rapid repeat swipes
                 cache.set(cache_key, 'swiped', timeout=30)
 
+                response_data = serializer.data
+                response_data['match_created'] = match_result
             return Response(serializer.data, status=201)
         else:
             return Response(serializer.errors, status=400)
         
 def check_for_match(swiper_id, swiped_user_id):
-    # Check if there's a mutual like
+    match_created = False  # Initialize the flag to False
+
+    # Existing logic to check and create a match
     if Swipe.objects.filter(swiper_id=swiped_user_id, swiped_id=swiper_id, direction="like").exists():
-        # Check if a match already exists to avoid duplicates
         match_exists = Match.objects.filter(user1_id=swiper_id, user2_id=swiped_user_id).exists() or \
                        Match.objects.filter(user1_id=swiped_user_id, user2_id=swiper_id).exists()
 
         if not match_exists:
             Match.objects.create(user1_id=swiper_id, user2_id=swiped_user_id)
-            # Trigger any notifications or other events here
+            match_created = True  # Set to True if a new match is created
+
+            # Trigger notifications or other events here
+
+    return match_created
 
 # Background task for checking matches
 def check_for_match_notifs(swiper_id, swiped_user_id):
