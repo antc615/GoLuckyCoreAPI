@@ -3,7 +3,7 @@ Pending Work for GoLucky:
 UserHome
 
 1. The UX mechanisms needs improvements
-   a. If there is a match there needs to be something in the UI that tells the user
+   a. If there is a match there needs to be something in the UI that tells the user - done
    b. After liking or disliking someone the Profile should be grayed out and the page should jump to the next user. The buttons should also be hidden
    c. If a user has too many photos the paginator freaks out
    d. Rethink the aboutme stuff/ biography. Whats important here?
